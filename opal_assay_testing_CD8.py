@@ -9,4 +9,4 @@ metadata = {
 
 def run(protocol: protocol_api.ProtocolContext):
     tiprack_300ul = protocol.load_labware('opentrons_96_tiprack_300ul', '1')
-    mothership_15ml = protocol.load_labware('mothership_24_tuberack_15000ul', '2')
+    tuberack_15ml = protocol.load_labware('opentrons_15_tuberack_falcon_15ml_conical', '2')
