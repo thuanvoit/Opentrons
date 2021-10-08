@@ -22,10 +22,10 @@ blocking_position = {
 def chacha_wash(protocol, pipette, chacha, n):
     for i in range(n):
         pipette.move_to(chacha['A6'].top(20))
-        pipette.move_to(chacha['A6'].top(-10), speed=20)
+        pipette.move_to(chacha['A6'].top(-10), speed=100)
         protocol.delay(seconds=5)
-        pipette.move_to(chacha['N6'].top(20))
-        pipette.move_to(chacha['N6'].top(), speed=20)
+        pipette.move_to(chacha['L6'].top(20))
+        pipette.move_to(chacha['L6'].top(), speed=20)
 
 def chacha_blocking(protocol, pipette, chacha, from_tupe, volume, to_cols, to_rows):
     pipette.aspirate(volume, from_tupe)
