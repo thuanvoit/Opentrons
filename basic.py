@@ -27,6 +27,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # labware
     tiprack = protocol.load_labware('opentrons_96_tiprack_300ul', location='1')
     plate = protocol.load_labware('corning_96_wellplate_360ul_flat', location='5')
+    
     tuberack = protocol.load_labware('opentrons_10_tuberack_falcon_4x50ml_6x15ml_conical', location='3')
 
     # pipettes
