@@ -155,10 +155,57 @@ def run(protocol: protocol_api.ProtocolContext):
                                     blocking_position[f'slide{i+1}']['rows'])
             protocol.delay(seconds=30)
             chachacmd.chacha_quickwash(protocol, pipette, chacha)
+    
+    # Last drain before next step
     chachacmd.chacha_washing(protocol, pipette, chacha, 3)
     
     #Remove OLD Tip
     pipette.drop_tip()
+    ######## REMOVE TBST #############################################
+
+    ###################################################################
+    ######## SECONDARY HRP ############################################
+    ###################################################################
+    pipette.pick_up_tip()
+
+    # Aspirate HRP
+    volume_per_slide = 300
+    for i in range(slides_number):
+        chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['opal_polymer_HRP'], 
+                                    volume_per_slide, 
+                                    blocking_position[f'slide{i+1}']['cols'], 
+                                    blocking_position[f'slide{i+1}']['rows'])
+    # 10 mins incubate
+    protocol.delay(minutes=10)
+    
+    # Drain Blocking Buffer
+    chachacmd.chacha_washing(protocol, pipette, chacha, wash_n_time=3)
+
+    # Remove the tip
+    pipette.drop_tip()
+
+    ######## RINSE TBST ##############################################
+    pipette.pick_up_tip()
+
+    # Washing TBST 6 times (30 seconds * 6 = 2 mins)
+    volume_per_slide = 200
+    for j in range(6):
+        for i in range(slides_number):
+            chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['tbst'], 
+                                    volume_per_slide, 
+                                    blocking_position[f'slide{i+1}']['cols'], 
+                                    blocking_position[f'slide{i+1}']['rows'])
+            protocol.delay(seconds=30)
+            chachacmd.chacha_quickwash(protocol, pipette, chacha)
+    
+    # Last drain before next step
+    chachacmd.chacha_washing(protocol, pipette, chacha, 3)
+    
+    #Remove OLD Tip
+    pipette.drop_tip()
+    ######## REMOVE TBST #############################################
     
 
 
