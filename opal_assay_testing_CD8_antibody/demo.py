@@ -37,12 +37,13 @@ metadata = {
     # |___________________|
 
 # INTRODUCE BLOCKING POSITION
+slides_number = 4
+
 blocking_position = {
     'slide1': { 'cols': ['2', '3'], # KEEP CONSTANT
                 'rows': ['D', 'E'], # OR
                         #['B', 'C'],
                         #['F', 'G'],
-                
                 },
     'slide2': { 'cols': ['9', '10'], # KEEP CONSTANT
                 'rows': ['D', 'E'], # OR
@@ -71,10 +72,28 @@ def run(protocol: protocol_api.ProtocolContext):
     #pipettes
     pipette = protocol.load_instrument('p300_single', 'left', tip_racks=[tiprack])
 
-    #tube introduce
-    # Opal Antibody Dilluent at Tuberack A1
-    opal_antibody_dilluent = tuberack['A1']
-    cd8_antibody = tuberack['A2']
+    #tube introduce for opentrons_15_tuberack_falcon_15ml_conical
+    antibody_solution = {
+        # --- 1ST ROW ---
+        'opal_antibody_dilluent': 'A1',
+        'cd8_antibody': 'A2',
+        'tbst': 'A3',
+        'opal_polymer_HRP': 'A4',
+        '': 'A5',
+        # --- 2ND ROW ---
+        '': 'B1',
+        '': 'B2',
+        '': 'B3',
+        '': 'B4',
+        '': 'B5',
+        # --- 3RD ROW ---
+        '': 'C1',
+        '': 'C2',
+        '': 'C3',
+        '': 'C4',
+        '': 'C5',
+
+    }
 
     #command
 
@@ -85,8 +104,10 @@ def run(protocol: protocol_api.ProtocolContext):
     
     # BLOCKING
     volume_per_slide = 300
-    for i in range(3):
-        chachacmd.chacha_blocking(protocol, pipette, chacha, opal_antibody_dilluent, volume_per_slide, 
+    for i in range(slides_number):
+        chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['opal_antibody_dilluent'], 
+                                    volume_per_slide, 
                                     blocking_position[f'slide{i+1}']['cols'], 
                                     blocking_position[f'slide{i+1}']['rows'])
     # 10 mins incubate
@@ -105,8 +126,10 @@ def run(protocol: protocol_api.ProtocolContext):
     
     # BLOCKING PRIMARY ANTIBODY INCUBATION
     volume_per_slide = 300
-    for i in range(3):
-        chachacmd.chacha_blocking(protocol, pipette, chacha, opal_antibody_dilluent, volume_per_slide, 
+    for i in range(slides_number):
+        chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['cd8_antibody'], 
+                                    volume_per_slide, 
                                     blocking_position[f'slide{i+1}']['cols'], 
                                     blocking_position[f'slide{i+1}']['rows'])
     # 30 mins incubate
@@ -117,6 +140,28 @@ def run(protocol: protocol_api.ProtocolContext):
 
     # Remove the tip
     pipette.drop_tip()
+
+    ######## RINSE TBST ##############################################
+    pipette.pick_up_tip()
+
+    # Washing TBST 6 times (30 seconds * 6 = 2 mins)
+    volume_per_slide = 200
+    for j in range(6):
+        for i in range(slides_number):
+            chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['tbst'], 
+                                    volume_per_slide, 
+                                    blocking_position[f'slide{i+1}']['cols'], 
+                                    blocking_position[f'slide{i+1}']['rows'])
+            protocol.delay(seconds=30)
+            chachacmd.chacha_quickwash(protocol, pipette, chacha)
+    chachacmd.chacha_washing(protocol, pipette, chacha, 3)
+    
+    #Remove OLD Tip
+    pipette.drop_tip()
+    
+
+
     
 
 
