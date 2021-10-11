@@ -1,4 +1,5 @@
 from opentrons import protocol_api
+from opentrons.commands.protocol_commands import delay
 import chacha_cmd as chachacmd
 
 #meta
@@ -63,6 +64,8 @@ blocking_position = {
     }
 
 
+
+
 def run(protocol: protocol_api.ProtocolContext):
     #labware
     tiprack = protocol.load_labware('opentrons_96_tiprack_300ul', location='1')
@@ -79,9 +82,9 @@ def run(protocol: protocol_api.ProtocolContext):
         'cd8_antibody': 'A2',
         'tbst': 'A3',
         'opal_polymer_HRP': 'A4',
-        '': 'A5',
+        'opal_fluorophore': 'A5',
         # --- 2ND ROW ---
-        '': 'B1',
+        'ar6_buffer': 'B1',
         '': 'B2',
         '': 'B3',
         '': 'B4',
@@ -141,27 +144,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # Remove the tip
     pipette.drop_tip()
 
-    ######## RINSE TBST ##############################################
-    pipette.pick_up_tip()
-
-    # Washing TBST 6 times (30 seconds * 6 = 2 mins)
-    volume_per_slide = 200
-    for j in range(6):
-        for i in range(slides_number):
-            chachacmd.chacha_blocking(protocol, pipette, chacha, 
-                                    antibody_solution['tbst'], 
-                                    volume_per_slide, 
-                                    blocking_position[f'slide{i+1}']['cols'], 
-                                    blocking_position[f'slide{i+1}']['rows'])
-            protocol.delay(seconds=30)
-            chachacmd.chacha_quickwash(protocol, pipette, chacha)
-    
-    # Last drain before next step
-    chachacmd.chacha_washing(protocol, pipette, chacha, 3)
-    
-    #Remove OLD Tip
-    pipette.drop_tip()
-    ######## REMOVE TBST #############################################
+    chachacmd.rinsing_with_tbst(protocol, pipette, chacha, slides_number, blocking_position, antibody_solution)
 
     ###################################################################
     ######## SECONDARY HRP ############################################
@@ -185,28 +168,49 @@ def run(protocol: protocol_api.ProtocolContext):
     # Remove the tip
     pipette.drop_tip()
 
-    ######## RINSE TBST ##############################################
+    chachacmd.rinsing_with_tbst(protocol, pipette, chacha, slides_number, blocking_position, antibody_solution)
+
+
+    ###################################################################
+    ######## OPAL FLUOROPHORE #########################################
+    ###################################################################
     pipette.pick_up_tip()
 
-    # Washing TBST 6 times (30 seconds * 6 = 2 mins)
-    volume_per_slide = 200
-    for j in range(6):
-        for i in range(slides_number):
-            chachacmd.chacha_blocking(protocol, pipette, chacha, 
-                                    antibody_solution['tbst'], 
+    # Aspirate HRP
+    volume_per_slide = 300
+    for i in range(slides_number):
+        chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['opal_fluorophore'], 
                                     volume_per_slide, 
                                     blocking_position[f'slide{i+1}']['cols'], 
                                     blocking_position[f'slide{i+1}']['rows'])
-            protocol.delay(seconds=30)
-            chachacmd.chacha_quickwash(protocol, pipette, chacha)
+    # 10 mins incubate
+    protocol.delay(minutes=10)
     
-    # Last drain before next step
-    chachacmd.chacha_washing(protocol, pipette, chacha, 3)
-    
-    #Remove OLD Tip
+    # Drain HRP Buffer
+    chachacmd.chacha_washing(protocol, pipette, chacha, wash_n_time=3)
+
+    # Remove the tip
     pipette.drop_tip()
-    ######## REMOVE TBST #############################################
-    
+
+    chachacmd.rinsing_with_tbst(protocol, pipette, chacha, slides_number, blocking_position, antibody_solution)
+
+    ######## AR6 BUFFER ##############################################
+
+    volume_per_slide = 300
+    for i in range(slides_number):
+        chachacmd.chacha_blocking(protocol, pipette, chacha, 
+                                    antibody_solution['ar6_buffer'], 
+                                    volume_per_slide, 
+                                    blocking_position[f'slide{i+1}']['cols'], 
+                                    blocking_position[f'slide{i+1}']['rows'])
+    # 10 mins incubate
+    protocol.delay(seconds=5)
+
+    # Drain AR6 Buffer
+    chachacmd.chacha_washing(protocol, pipette, chacha, wash_n_time=3)
+
+
 
 
     
