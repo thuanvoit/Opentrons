@@ -13,6 +13,18 @@ class Opentron_Chacha:
         self.tuberack = tuberack
         self.antibody_solution = antibody_solution
         self.blocking_position = blocking_position
+
+    def check_antibodies(self):
+        for antibody in self.antibody_solution:
+            if antibody != "empty":
+                self.pipette.move_to(self.chacha_labware[self.antibody_solution[antibody]['position']].top(20))
+                self.protocol.comment('--------------------------------------------------')
+                self.protocol.comment(f"PLEASE CANCEL IF '{antibody}' IS NOT AT TUBERACK '{self.antibody_solution[antibody]['position']}'")
+                self.protocol.comment(f"TASKS WILL RESUME IN 5 SECONDS")
+                self.protocol.comment('--------------------------------------------------')
+                self.protocol.delay(seconds=5)
+        self.protocol.comment("CHECKING SUCESSFULLY")
+        
         
     #wash stuff
     def washing(self, wash_n_time):
@@ -141,16 +153,17 @@ def run(protocol: protocol_api.ProtocolContext):
         
         # --- 2ND ROW ---
         'ar6_buffer': {'position': 'B1', 'volume': 300, 'time': {"mins": 0, "sec": 5}},
-        '': 'B2',
-        '': 'B3',
-        '': 'B4',
-        '': 'B5',
+        'empty': {'position': 'B2', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'B3', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'B4', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'B5', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         # --- 3RD ROW ---
-        '': 'C1',
-        '': 'C2',
-        '': 'C3',
-        '': 'C4',
-        '': 'C5',
+        'empty': {'position': 'C1', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'C2', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'C3', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'C4', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        'empty': {'position': 'C5', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+
 
     }
 
@@ -188,6 +201,8 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
 
     chacha = Opentron_Chacha(protocol, pipette, chacha_labware, tuberack, antibody_solution, blocking_position)
+
+    chacha.check_antibodies()
 
     pipette.pick_up_tip()
     
