@@ -47,9 +47,6 @@ class Opentron_Chacha:
         self.pipette.move_to(self.chacha_labware['L6'].top(-2), speed=50)
 
 
-    #quick wash
-    def quickwash(self):
-        self.washing(1)
 
     def process_info(self, antibody_type):
         if antibody_type in self.antibody_solution.keys():
@@ -84,9 +81,6 @@ class Opentron_Chacha:
                     self.blocking(antibody_type, self.blocking_position[f'slide{i+1}']['cols'], 
                                                         self.blocking_position[f'slide{i+1}']['rows'])
                 self.protocol.delay(minutes=info[2][0], seconds=info[2][1])
-                #self.quickwash()
-            
-            # Last drain before next step
             self.washing(3)
         
         #Remove OLD Tip
@@ -142,13 +136,9 @@ def run(protocol: protocol_api.ProtocolContext):
     antibody_solution = {
         # --- 1ST ROW ---
         'opal_antibody_dilluent': {'position': 'A1', 'volume': 300, 'time': {"mins": 30, "sec": 0}},
-
         'cd8_antibody': {'position': 'A2', 'volume': 300, 'time': {"mins": 30, "sec": 0}},
-
         'tbst': {'position': 'A3', 'volume': 200, 'time': {"mins": 0, "sec": 30}},
-
         'opal_polymer_HRP': {'position': 'A4', 'volume': 300, 'time': {"mins": 10, "sec": 0}},
-
         'opal_fluorophore': {'position': 'A5', 'volume': 300, 'time': {"mins": 10, "sec": 0}},
         
         # --- 2ND ROW ---
