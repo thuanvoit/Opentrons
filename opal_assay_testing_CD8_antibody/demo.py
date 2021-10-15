@@ -1,10 +1,6 @@
 from opentrons import protocol_api
 from opentrons.commands.protocol_commands import delay
 
-##################
-# rows chacha_labware
-rows = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']
-
 class Opentron_Chacha:
     def __init__(self, protocol, pipette, chacha_labware, slides_num, tuberack, antibody_solution, blocking_position):
         self.protocol = protocol
@@ -20,7 +16,7 @@ class Opentron_Chacha:
         for antibody in self.antibody_solution:
             if antibody != "empty":
                 self.pipette.move_to(self.chacha_labware[self.antibody_solution[antibody]['position']].top(20))
-                self.protocol.comment('--------------------------------------------------')
+                self.protocol.comment('-------- WARNING ---------------------------------')
                 self.protocol.comment(f"PLEASE CANCEL IF '{antibody}' IS NOT AT TUBERACK '{self.antibody_solution[antibody]['position']}'")
                 self.protocol.comment(f"TASKS WILL RESUME IN 5 SECONDS")
                 self.protocol.comment('--------------------------------------------------')
@@ -76,7 +72,7 @@ class Opentron_Chacha:
                 self.pipette.dispense(self.pipette.current_volume, location=self.chacha_labware[self.blocking_position[f'slide{i+1}']['rows'][-1]+self.blocking_position[f'slide{i+1}']['cols'][-1]].top())
             self.pipette.blow_out(location=self.chacha_labware[self.blocking_position[f'slide{i+1}']['rows'][-1]+self.blocking_position[f'slide{i+1}']['cols'][-1]].top())
             #
-            
+
         self.protocol.delay(minutes=info[2][0], seconds=info[2][1])
         
 
