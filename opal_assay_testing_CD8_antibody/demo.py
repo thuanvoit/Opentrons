@@ -6,15 +6,17 @@ from opentrons.commands.protocol_commands import delay
 rows = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P']
 
 class Opentron_Chacha:
-    def __init__(self, protocol, pipette, chacha_labware, tuberack, antibody_solution, blocking_position):
+    def __init__(self, protocol, pipette, chacha_labware, slides_num, tuberack, antibody_solution, blocking_position):
         self.protocol = protocol
         self.pipette = pipette
         self.chacha_labware = chacha_labware
         self.tuberack = tuberack
         self.antibody_solution = antibody_solution
         self.blocking_position = blocking_position
+        self.slides_num = slides_num
 
     def check_antibodies(self):
+        count = 0
         for antibody in self.antibody_solution:
             if antibody != "empty":
                 self.pipette.move_to(self.chacha_labware[self.antibody_solution[antibody]['position']].top(20))
@@ -23,7 +25,8 @@ class Opentron_Chacha:
                 self.protocol.comment(f"TASKS WILL RESUME IN 5 SECONDS")
                 self.protocol.comment('--------------------------------------------------')
                 self.protocol.delay(seconds=5)
-        self.protocol.comment("CHECKING SUCESSFULLY")
+                count+=1
+        self.protocol.comment(f"{count} ANTIBODIES DETECTED SUCESFULLY")
         
         
     #wash stuff
@@ -43,12 +46,13 @@ class Opentron_Chacha:
             self.pipette.move_to(self.chacha_labware['A6'].top(-13))
 
             self.protocol.delay(seconds=5)
+
         self.pipette.move_to(self.chacha_labware['L6'].top(20))
         self.pipette.move_to(self.chacha_labware['L6'].top(-2), speed=50)
 
 
 
-    def process_info(self, antibody_type):
+    def antibody_info(self, antibody_type):
         if antibody_type in self.antibody_solution.keys():
             position = self.antibody_solution[antibody_type]['position']
             volume = self.antibody_solution[antibody_type]['volume']
@@ -59,27 +63,33 @@ class Opentron_Chacha:
             return None
 
     #blocking method
-    def blocking(self, antibody_type, to_cols, to_rows):
-        info = self.process_info(antibody_type)
-        self.pipette.aspirate(info[1], self.tuberack[info[0]])
-        for col in to_cols:
-            for row in to_rows:
-                self.pipette.dispense(info[1]/4, location=self.chacha_labware[row+col].top())
-        self.pipette.blow_out(location=self.chacha_labware[to_rows[-1]+to_cols[-1]].top())
+    def blocking(self, antibody_type):
+        for i in range(self.slides_num):
+            info = self.antibody_info(antibody_type)
+            self.pipette.aspirate(info[1], self.tuberack[info[0]])
+            for col in self.blocking_position[f'slide{i+1}']['cols']:
+                for row in self.blocking_position[f'slide{i+1}']['rows']:
+                    self.pipette.dispense(info[1]/4, location=self.chacha_labware[row+col].top())
+
+            #
+            while (self.pipette.current_volume > 0):
+                self.pipette.dispense(self.pipette.current_volume, location=self.chacha_labware[self.blocking_position[f'slide{i+1}']['rows'][-1]+self.blocking_position[f'slide{i+1}']['cols'][-1]].top())
+            self.pipette.blow_out(location=self.chacha_labware[self.blocking_position[f'slide{i+1}']['rows'][-1]+self.blocking_position[f'slide{i+1}']['cols'][-1]].top())
+            #
+            
         self.protocol.delay(minutes=info[2][0], seconds=info[2][1])
         
 
     # TBST RINSING
-    def rinsing_with_tbst(self, antibody_type, slides_number, n_time):
-        info = self.process_info(antibody_type)
+    def rinsing_with_tbst(self, antibody_type, n_time):
+        info = self.antibody_info(antibody_type)
         self.pipette.pick_up_tip()
 
         for n in range(n_time):
             # Washing TBST 6 times (30 seconds * 6 = 2 mins)
             for j in range(6):
-                for i in range(slides_number):
-                    self.blocking(antibody_type, self.blocking_position[f'slide{i+1}']['cols'], 
-                                                        self.blocking_position[f'slide{i+1}']['rows'])
+                for i in range(self.slides_num):
+                    self.blocking(antibody_type)
                 self.protocol.delay(minutes=info[2][0], seconds=info[2][1])
             self.washing(3)
         
@@ -124,14 +134,7 @@ metadata = {
 
 
 def run(protocol: protocol_api.ProtocolContext):
-    #labware
-    tiprack = protocol.load_labware('opentrons_96_tiprack_300ul', location='1')
-    chacha_labware = protocol.load_labware('corning_384_wellplate_112ul_flat', location='2')
-    tuberack = protocol.load_labware('opentrons_15_tuberack_falcon_15ml_conical', location='7')
     
-    #pipettes
-    pipette = protocol.load_instrument('p300_single', 'left', tip_racks=[tiprack])
-
     #tube introduce for opentrons_15_tuberack_falcon_15ml_conical
     antibody_solution = {
         # --- 1ST ROW ---
@@ -153,56 +156,60 @@ def run(protocol: protocol_api.ProtocolContext):
         'empty': {'position': 'C3', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         'empty': {'position': 'C4', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         'empty': {'position': 'C5', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
-
-
     }
 
     # INTRODUCE BLOCKING POSITION
-    slides_number = 4
 
     #chacha1
-    blocking_position = {
-        'slide1': { 'cols': ['2', '3'], # KEEP CONSTANT
-                    'rows': ['D', 'E'], # OR
-                            #['B', 'C'],
-                            #['F', 'G'],
-                    },
-        'slide2': { 'cols': ['9', '10'], # KEEP CONSTANT
-                    'rows': ['D', 'E'], # OR
-                            #['B', 'C'],
-                            #['F', 'G'],
-                    },
-        'slide3': { 'cols': ['16', '17'], # KEEP CONSTANT
-                    'rows': ['D', 'E'], # OR
-                            #['B', 'C'],
-                            #['F', 'G'],
-                    },
-        'slide4': { 'cols': ['23', '24'], # KEEP CONSTANT
-                    'rows': ['D', 'E'], # OR
-                            #['B', 'C'],
-                            #['F', 'G'],
-                    },
-        }
+    chacha1 = {"location": 2,
+                "slide_number": 4, 
+                "blocking_position": {
+                    'slide1': { 'cols': ['2', '3'], # KEEP CONSTANT
+                                'rows': ['D', 'E'], # OR
+                                        #['B', 'C'],
+                                        #['F', 'G'],
+                                },
+                    'slide2': { 'cols': ['9', '10'], # KEEP CONSTANT
+                                'rows': ['D', 'E'], # OR
+                                        #['B', 'C'],
+                                        #['F', 'G'],
+                                },
+                    'slide3': { 'cols': ['16', '17'], # KEEP CONSTANT
+                                'rows': ['D', 'E'], # OR
+                                        #['B', 'C'],
+                                        #['F', 'G'],
+                                },
+                    'slide4': { 'cols': ['23', '24'], # KEEP CONSTANT
+                                'rows': ['D', 'E'], # OR
+                                        #['B', 'C'],
+                                        #['F', 'G'],
+                                },
+                    }
+                }
+
+    #labware
+    tiprack = protocol.load_labware('opentrons_96_tiprack_300ul', location='1')
+    chacha_labware = protocol.load_labware('corning_384_wellplate_112ul_flat', location=chacha1["location"])
+    tuberack = protocol.load_labware('opentrons_15_tuberack_falcon_15ml_conical', location='7')
+    
+    #pipettes
+    pipette = protocol.load_instrument('p300_single', 'left', tip_racks=[tiprack])
 
     #command
+
+    chacha = Opentron_Chacha(protocol, pipette, chacha_labware, chacha1['slide_number'], tuberack, antibody_solution, chacha1['blocking_position'])
+
+    chacha.check_antibodies()
 
     ###################################################################
     ######## BLOCKING using Opal Antibody Dilluent ####################
     ###################################################################
 
-    chacha = Opentron_Chacha(protocol, pipette, chacha_labware, tuberack, antibody_solution, blocking_position)
-
-    chacha.check_antibodies()
-
     pipette.pick_up_tip()
     
     # BLOCKING
-    for i in range(slides_number):
-        chacha.blocking('opal_antibody_dilluent', 
-                        blocking_position[f'slide{i+1}']['cols'], 
-                        blocking_position[f'slide{i+1}']['rows'])
+    chacha.blocking('opal_antibody_dilluent')
 
-    
     # Drain Blocking Buffer
     chacha.washing(3)
 
@@ -212,33 +219,28 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
     ######## PRIMARY ANTIBODY INCUBATION ##############################
     ###################################################################
+
     pipette.pick_up_tip()
     
     # BLOCKING PRIMARY ANTIBODY INCUBATION
-    for i in range(slides_number):
-        chacha.blocking('cd8_antibody', 
-                        blocking_position[f'slide{i+1}']['cols'], 
-                        blocking_position[f'slide{i+1}']['rows'])
+    chacha.blocking('cd8_antibody')
 
-    
     # Drain Blocking Buffer
     chacha.washing(wash_n_time=3)
 
     # Remove the tip
     pipette.drop_tip()
 
-    chacha.rinsing_with_tbst('tbst', slides_number, 5)
+    chacha.rinsing_with_tbst('tbst', 5)
 
     ###################################################################
     ######## SECONDARY HRP ############################################
     ###################################################################
+
     pipette.pick_up_tip()
 
     # Aspirate HRP
-    for i in range(slides_number):
-        chacha.blocking('opal_polymer_HRP', 
-                        blocking_position[f'slide{i+1}']['cols'], 
-                        blocking_position[f'slide{i+1}']['rows'])
+    chacha.blocking('opal_polymer_HRP')
     
     # Drain Blocking Buffer
     chacha.washing(wash_n_time=3)
@@ -246,19 +248,16 @@ def run(protocol: protocol_api.ProtocolContext):
     # Remove the tip
     pipette.drop_tip()
 
-    chacha.rinsing_with_tbst('tbst', slides_number, 5)
-
+    chacha.rinsing_with_tbst('tbst', 5)
 
     ###################################################################
     ######## OPAL FLUOROPHORE #########################################
     ###################################################################
+    
     pipette.pick_up_tip()
 
     # Aspirate HRP
-    for i in range(slides_number):
-        chacha.blocking('opal_fluorophore', 
-                        blocking_position[f'slide{i+1}']['cols'], 
-                        blocking_position[f'slide{i+1}']['rows'])
+    chacha.blocking('opal_fluorophore')
 
     # Drain HRP Buffer
     chacha.washing(wash_n_time=3)
@@ -266,23 +265,15 @@ def run(protocol: protocol_api.ProtocolContext):
     # Remove the tip
     pipette.drop_tip()
 
-    chacha.rinsing_with_tbst('tbst', slides_number, 5)
+    chacha.rinsing_with_tbst('tbst', 5)
 
     ######## AR6 BUFFER ##############################################
+
     pipette.pick_up_tip()
-    for i in range(slides_number):
-        chacha.blocking('ar6_buffer', 
-                        blocking_position[f'slide{i+1}']['cols'], 
-                        blocking_position[f'slide{i+1}']['rows'])
+
+    chacha.blocking('ar6_buffer')
 
     # Drain AR6 Buffer
     chacha.washing(wash_n_time=3)
+
     pipette.drop_tip()
-
-
-
-
-    
-
-
-
