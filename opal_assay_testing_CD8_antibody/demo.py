@@ -63,6 +63,9 @@ class Opentron_Chacha:
         for i in range(self.slides_num):
             info = self.antibody_info(antibody_type)
             self.pipette.aspirate(info[1], self.tuberack[info[0]])
+
+            self.pipette.move_to(self.tuberack[info[0]].top(20), speed=50) # move slowly up
+
             for col in self.blocking_position[f'slide{i+1}']['cols']:
                 for row in self.blocking_position[f'slide{i+1}']['rows']:
                     self.pipette.dispense(info[1]/4, location=self.chacha_labware[row+col].top())
@@ -99,7 +102,7 @@ class Opentron_Chacha:
                 self.protocol.delay(minutes=info[2][0], seconds=info[2][1])
                 self.washing(3)
         
-        #Remove OLD Tip
+        # Remove OLD Tip
         self.pipette.drop_tip()
         ######## REMOVE TBST #########################
 
