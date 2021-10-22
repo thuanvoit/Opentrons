@@ -146,6 +146,7 @@ def run(protocol: protocol_api.ProtocolContext):
         'empty': {'position': 'B3', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         'empty': {'position': 'B4', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         'empty': {'position': 'B5', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
+        
         # --- 3RD ROW ---
         'empty': {'position': 'C1', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
         'empty': {'position': 'C2', 'volume': 0, 'time': {"mins": 0, "sec": 0}},
@@ -191,6 +192,8 @@ def run(protocol: protocol_api.ProtocolContext):
     #pipettes
     pipette = protocol.load_instrument('p300_single', 'left', tip_racks=[tiprack])
 
+    ######## START ####################################################
+
     #command
 
     chacha = Opentron_Chacha(protocol, pipette, chacha_labware, chacha1['slide_number'], tuberack, antibody_solution, chacha1['blocking_position'])
@@ -202,14 +205,8 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
 
     pipette.pick_up_tip()
-    
-    # BLOCKING
     chacha.blocking('opal_antibody_dilluent')
-
-    # Drain Blocking Buffer
     chacha.washing(3)
-
-    # Remove the tip
     pipette.drop_tip()
     
     ###################################################################
@@ -217,16 +214,9 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
 
     pipette.pick_up_tip()
-    
-    # BLOCKING PRIMARY ANTIBODY INCUBATION
     chacha.blocking('cd8_antibody')
-
-    # Drain Blocking Buffer
     chacha.washing(wash_n_time=3)
-
-    # Remove the tip
     pipette.drop_tip()
-
     chacha.rinsing_with_tbst('tbst', 5)
 
     ###################################################################
@@ -234,16 +224,9 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
 
     pipette.pick_up_tip()
-
-    # Aspirate HRP
     chacha.blocking('opal_polymer_HRP')
-    
-    # Drain Blocking Buffer
     chacha.washing(wash_n_time=3)
-
-    # Remove the tip
     pipette.drop_tip()
-
     chacha.rinsing_with_tbst('tbst', 5)
 
     ###################################################################
@@ -251,25 +234,16 @@ def run(protocol: protocol_api.ProtocolContext):
     ###################################################################
     
     pipette.pick_up_tip()
-
-    # Aspirate HRP
     chacha.blocking('opal_fluorophore')
-
-    # Drain HRP Buffer
     chacha.washing(wash_n_time=3)
-
-    # Remove the tip
     pipette.drop_tip()
-
     chacha.rinsing_with_tbst('tbst', 5)
 
     ######## AR6 BUFFER ##############################################
 
     pipette.pick_up_tip()
-
     chacha.blocking('ar6_buffer')
-
-    # Drain AR6 Buffer
     chacha.washing(wash_n_time=3)
-
     pipette.drop_tip()
+
+    ######## END #####################################################
