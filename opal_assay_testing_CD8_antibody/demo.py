@@ -37,7 +37,7 @@ class Opentron_Chacha:
         for i in range(wash_n_time):
             self.pipette.move_to(self.chacha_labware['A6'].top(20))
             self.pipette.move_to(self.chacha_labware['A6'].top(-5), speed=100)
-            self.pipette.move_to(self.chacha_labware['A6'].top(-12), speed=150)
+            self.pipette.move_to(self.chacha_labware['A6'].top(-12), speed=150) #speed to not throw slides =))
             
 
             self.pipette.move_to(self.chacha_labware['L6'].top(20))
@@ -46,7 +46,7 @@ class Opentron_Chacha:
 
             self.pipette.move_to(self.chacha_labware['A6'].top(20))
             self.pipette.move_to(self.chacha_labware['A6'].top(-5), speed=100)
-            self.pipette.move_to(self.chacha_labware['A6'].top(-12), speed=150)
+            self.pipette.move_to(self.chacha_labware['A6'].top(-12), speed=150) #speed to not throw slides =))
 
             self.protocol.delay(seconds=5)
 
@@ -58,7 +58,7 @@ class Opentron_Chacha:
             position = self.antibody_solution[antibody_type]['position']
             return position
         else:
-            self.protocol.pause(f"ERROR: '{antibody_type}' is not one of antibody_solution defined")
+            self.protocol.pause(f"ERROR: Something wrong with '{antibody_type}'")
             return None
 
     def get_volume(self, antibody_type):
@@ -66,7 +66,7 @@ class Opentron_Chacha:
             volume = self.antibody_solution[antibody_type]['volume']
             return volume
         else:
-            self.protocol.pause(f"ERROR: '{antibody_type}' is not one of antibody_solution defined")
+            self.protocol.pause(f"ERROR: Something wrong with '{antibody_type}'")
             return None
 
     def get_time(self, antibody_type):
@@ -74,7 +74,7 @@ class Opentron_Chacha:
             time = [self.antibody_solution[antibody_type]['time']['mins'], self.antibody_solution[antibody_type]['time']['sec']]
             return time
         else:
-            self.protocol.pause(f"ERROR: '{antibody_type}' is not one of antibody_solution defined")
+            self.protocol.pause(f"ERROR: Something wrong with '{antibody_type}'")
             return None
 
     # def antibody_info(self, antibody_type):
@@ -101,11 +101,12 @@ class Opentron_Chacha:
         self.antibody_solution[antibody_type]['used'] = current_volume_used
     
     def volume_used_report(self):
+        self.comment(f'TOTAL VOLUME REPORT')
         for antibody in self.antibody_solution:
             if antibody != "empty":
                 solution = self.antibody_solution[antibody]
                 volume_used = solution['used']
-                self.comment(f'Total Volume {antibody} used is {volume_used} uL')
+                self.protocol.comment(f'Total Volume {antibody} used is {volume_used}uL ~ {str(volume_used/1000)}mL')
 
     #blocking method
     def blocking(self, antibody_type):
@@ -352,8 +353,8 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.blocking('cd8_antibody')
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()
-    chacha.rinsing_with('tbst', 5, 2, 1, 0)
-    #chacha.rinsing_with_tbst('tbst', 5)
+    #TBST
+    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
 
     ###################################################################
     ######## SECONDARY HRP ############################################
@@ -363,8 +364,8 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.blocking('opal_polymer_HRP')
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()  
-    chacha.rinsing_with('tbst', 5, 2, 1, 0)
-    #chacha.rinsing_with_tbst('tbst', 5)
+    #TBST
+    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
 
     ###################################################################
     ######## OPAL FLUOROPHORE #########################################
@@ -374,8 +375,9 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.blocking('opal_fluorophore')
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()
-    chacha.rinsing_with('tbst', 5, 2, 1, 0)
-    #chacha.rinsing_with_tbst('tbst', 5)
+    #TBST
+    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
+    
 
     ######## AR6 BUFFER ##############################################
 
@@ -390,9 +392,10 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.blocking('dapi')
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()
-    # chacha.rinsing_with_tbst('tbst', 2) #each time 2 minutes
-    chacha.rinsing_with('tbst', 2, 1, 2, 0)
-    chacha.rinsing_with('h2o', 2, 1, 2, 0)
+
+    #TBST
+    chacha.rinsing_with(antibody_type='tbst', n_time=2, n_each=1, delay_min_in_btw=2, delay_sec_in_btw=0)
+    chacha.rinsing_with(antibody_type='h2o', n_time=2, n_each=1, delay_min_in_btw=2, delay_sec_in_btw=0)
 
     ######## END #####################################################
 
