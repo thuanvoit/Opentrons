@@ -168,7 +168,6 @@ class Opentron_Chacha:
         
         self.pipette.pick_up_tip()
         
-        
         for n in range(n_time):
             self.comment(f'WASH WITH {antibody_type} {n+1} time')
             # Washing TBST 4 times (30 seconds * 4 = 2 mins)
@@ -177,6 +176,7 @@ class Opentron_Chacha:
                 volume = self.get_volume(antibody_type)
 
                 max_vol_aspirate = self.pipette.max_volume
+
                 volume_to_do = 0
 
                 while (volume > 0):
@@ -267,22 +267,16 @@ def run(protocol: protocol_api.ProtocolContext):
                 "slide_number": 4, 
                 "blocking_position": {
                     'slide1': { 'cols': ['2', '3'], # KEEP CONSTANT
-                                'rows': ['G', 'H'], # OR
-                                        #['B', 'C'],
-                                        #['F', 'G'],
+                                'rows': ['D', 'F'], # OR
                                 },
                     'slide2': { 'cols': ['9', '10'], # KEEP CONSTANT
-                                'rows': ['D', 'E'], # OR
-                                        #['B', 'C'],
-                                        #['F', 'G'],
+                                'rows': ['F', 'H'], # OR
                                 },
                     'slide3': { 'cols': ['16', '17'], # KEEP CONSTANT
-                                'rows': ['D', 'E'], # OR
-                                        #['B', 'C'],
-                                        #['F', 'G'],
+                                'rows': ['F', 'H'], # OR
                                 },
                     'slide4': { 'cols': ['23', '24'], # KEEP CONSTANT
-                                'rows': ['F', 'G'], # OR
+                                'rows': ['F', 'H'], # OR
                                         #['B', 'C'],
                                         #['F', 'G'],
                                 },
@@ -301,15 +295,15 @@ def run(protocol: protocol_api.ProtocolContext):
         # --- 1ST ROW ---
         'opal_antibody_dilluent': {'labware': tuberack_15, 'position': 'A1', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
         'cd8_antibody': {'labware': tuberack_15, 'position': 'A2', 'volume': 400, 'time': {"mins": 30, "sec": 0}, 'used':0},
-        'tbst1': {'labware': tuberack_15, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
-        'opal_polymer_HRP': {'labware': tuberack_15_50, 'position': 'A4', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
-        'opal_fluorophore': {'labware': tuberack_15, 'position': 'A5', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
+        'tbst1': {'labware': tuberack_15_50, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
+        'opal_polymer_HRP': {'labware': tuberack_15, 'position': 'A3', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
+        'opal_fluorophore': {'labware': tuberack_15, 'position': 'A4', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
 
         # --- 2ND ROW ---
-        'ar6_buffer': {'labware': tuberack_15, 'position': 'B1', 'volume': 400, 'time': {"mins": 0, "sec": 5}, 'used':0},
+        #'ar6_buffer': {'labware': tuberack_15, 'position': 'B1', 'volume': 400, 'time': {"mins": 0, "sec": 5}, 'used':0},
         'dapi': {'labware': tuberack_15, 'position': 'B2', 'volume': 400, 'time': {"mins": 5, "sec": 0}, 'used':0},
         'h2o': {'labware': tuberack_15, 'position': 'B3', 'volume': 400, 'time': {"mins": 2, "sec": 0}, 'used':0},
-        'tbst2': {'labware': tuberack_15_50, 'position': 'B4', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
+        'tbst2': {'labware': tuberack_15_50, 'position': 'A4', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
         'empty': {'labware': 'empty', 'position': 'B5', 'volume': 0, 'time': {"mins": 0, "sec": 0}, 'used':0},
 
         # --- 3RD ROW ---
@@ -354,7 +348,7 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()
     #TBST
-    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
+    chacha.rinsing_with(antibody_type='tbst1', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
 
     ###################################################################
     ######## SECONDARY HRP ############################################
@@ -365,7 +359,7 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()  
     #TBST
-    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
+    chacha.rinsing_with(antibody_type='tbst1', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
 
     ###################################################################
     ######## OPAL FLUOROPHORE #########################################
@@ -376,15 +370,15 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.washing(wash_n_time=3)
     pipette.drop_tip()
     #TBST
-    chacha.rinsing_with(antibody_type='tbst', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
+    chacha.rinsing_with(antibody_type='tbst2', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
     
 
     ######## AR6 BUFFER ##############################################
 
-    pipette.pick_up_tip()
-    chacha.blocking('ar6_buffer')
-    chacha.washing(wash_n_time=3)
-    pipette.drop_tip()
+    # pipette.pick_up_tip()
+    # chacha.blocking('ar6_buffer')
+    # chacha.washing(wash_n_time=3)
+    # pipette.drop_tip()
 
     ######## DAPI ####################################################
 
@@ -394,7 +388,7 @@ def run(protocol: protocol_api.ProtocolContext):
     pipette.drop_tip()
 
     #TBST
-    chacha.rinsing_with(antibody_type='tbst', n_time=2, n_each=1, delay_min_in_btw=2, delay_sec_in_btw=0)
+    chacha.rinsing_with(antibody_type='tbst2', n_time=2, n_each=1, delay_min_in_btw=2, delay_sec_in_btw=0)
     chacha.rinsing_with(antibody_type='h2o', n_time=2, n_each=1, delay_min_in_btw=2, delay_sec_in_btw=0)
 
     ######## END #####################################################
