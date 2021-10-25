@@ -301,15 +301,15 @@ def run(protocol: protocol_api.ProtocolContext):
         # --- 1ST ROW ---
         'opal_antibody_dilluent': {'labware': tuberack_15, 'position': 'A1', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
         'cd8_antibody': {'labware': tuberack_15, 'position': 'A2', 'volume': 400, 'time': {"mins": 30, "sec": 0}, 'used':0},
-        'tbst': {'labware': tuberack_15, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
-        'opal_polymer_HRP': {'labware': tuberack_15, 'position': 'A4', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
+        'tbst1': {'labware': tuberack_15, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
+        'opal_polymer_HRP': {'labware': tuberack_15_50, 'position': 'A4', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
         'opal_fluorophore': {'labware': tuberack_15, 'position': 'A5', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
 
         # --- 2ND ROW ---
         'ar6_buffer': {'labware': tuberack_15, 'position': 'B1', 'volume': 400, 'time': {"mins": 0, "sec": 5}, 'used':0},
         'dapi': {'labware': tuberack_15, 'position': 'B2', 'volume': 400, 'time': {"mins": 5, "sec": 0}, 'used':0},
         'h2o': {'labware': tuberack_15, 'position': 'B3', 'volume': 400, 'time': {"mins": 2, "sec": 0}, 'used':0},
-        'empty': {'labware': 'empty', 'position': 'B4', 'volume': 0, 'time': {"mins": 0, "sec": 0}, 'used':0},
+        'tbst2': {'labware': tuberack_15_50, 'position': 'B4', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
         'empty': {'labware': 'empty', 'position': 'B5', 'volume': 0, 'time': {"mins": 0, "sec": 0}, 'used':0},
 
         # --- 3RD ROW ---
