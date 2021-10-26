@@ -76,16 +76,6 @@ class Opentron_Chacha:
         else:
             self.protocol.pause(f"ERROR: Something wrong with '{antibody_type}'")
             return None
-
-    # def antibody_info(self, antibody_type):
-    #     if antibody_type in self.antibody_solution.keys():
-    #         position = self.antibody_solution[antibody_type]['position']
-    #         volume = self.antibody_solution[antibody_type]['volume']
-    #         time = [self.antibody_solution[antibody_type]['time']['mins'], self.antibody_solution[antibody_type]['time']['sec']]
-    #         return [position, volume, time]
-    #     else:
-    #         self.protocol.pause(f"ERROR: '{antibody_type}' is not one of antibody_solution defined")
-    #         return None
         
     def get_labware(self, antibody_type):
         if antibody_type in self.antibody_solution.keys():
@@ -107,6 +97,13 @@ class Opentron_Chacha:
                 solution = self.antibody_solution[antibody]
                 volume_used = solution['used']
                 self.protocol.comment(f'Total Volume {antibody} used is {volume_used}uL ~ {str(volume_used/1000)}mL')
+
+    def mix_up_n_down(self, volume, location, n_time):
+        self.comment('MIX UP & DOWN')
+        for n in range(n_time):
+            self.pipette.aspirate(volume, location)
+            self.pipette.dispense(volume, location)
+            self.pipette.blow_out(location)
 
     #blocking method
     def blocking(self, antibody_type):
@@ -131,6 +128,7 @@ class Opentron_Chacha:
             self.comment(f'BLOCK WITH {volume_to_do} uL {antibody_type} FROM {sol_labware} - {position}')
 
             for i in range(self.slides_num):
+                self.mix_up_n_down(max_vol_aspirate, sol_labware[position], 3)
                 self.pipette.aspirate(volume_to_do, sol_labware[position])
                 self.volume_used(antibody_type, volume_to_do)
 
@@ -188,6 +186,7 @@ class Opentron_Chacha:
 
                     for i in range(self.slides_num):
                         
+                        self.mix_up_n_down(max_vol_aspirate, sol_labware[position], 3)
                         self.pipette.aspirate(volume_to_do, sol_labware[position])
                         self.volume_used(antibody_type, volume_to_do)
                         
@@ -295,7 +294,6 @@ def run(protocol: protocol_api.ProtocolContext):
         # --- 1ST ROW ---
         'opal_antibody_dilluent': {'labware': tuberack_15, 'position': 'A1', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
         'cd8_antibody': {'labware': tuberack_15, 'position': 'A2', 'volume': 400, 'time': {"mins": 30, "sec": 0}, 'used':0},
-        'tbst1': {'labware': tuberack_15_50, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
         'opal_polymer_HRP': {'labware': tuberack_15, 'position': 'A3', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
         'opal_fluorophore': {'labware': tuberack_15, 'position': 'A4', 'volume': 400, 'time': {"mins": 10, "sec": 0}, 'used':0},
 
@@ -303,6 +301,7 @@ def run(protocol: protocol_api.ProtocolContext):
         #'ar6_buffer': {'labware': tuberack_15, 'position': 'B1', 'volume': 400, 'time': {"mins": 0, "sec": 5}, 'used':0},
         'dapi': {'labware': tuberack_15, 'position': 'B2', 'volume': 400, 'time': {"mins": 5, "sec": 0}, 'used':0},
         'h2o': {'labware': tuberack_15, 'position': 'B3', 'volume': 400, 'time': {"mins": 2, "sec": 0}, 'used':0},
+        'tbst1': {'labware': tuberack_15_50, 'position': 'A3', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
         'tbst2': {'labware': tuberack_15_50, 'position': 'A4', 'volume': 400, 'time': {"mins": 1, "sec": 0}, 'used':0},
         'empty': {'labware': 'empty', 'position': 'B5', 'volume': 0, 'time': {"mins": 0, "sec": 0}, 'used':0},
 
@@ -373,6 +372,7 @@ def run(protocol: protocol_api.ProtocolContext):
     chacha.rinsing_with(antibody_type='tbst2', n_time=5, n_each=2, delay_min_in_btw=1, delay_sec_in_btw=0)
     
 
+    ######## SKIP AR6 BUFFER #########################################
     ######## AR6 BUFFER ##############################################
 
     # pipette.pick_up_tip()
@@ -381,6 +381,9 @@ def run(protocol: protocol_api.ProtocolContext):
     # pipette.drop_tip()
 
     ######## DAPI ####################################################
+    ## PAUSE PROGRAM BEFORE DAPI ##
+
+    protocol.pause(f"PUT DAPI INTO {antibody_solution['dapi']['labware']} - {antibody_solution['dapi']['postion']}")
 
     pipette.pick_up_tip()
     chacha.blocking('dapi')
