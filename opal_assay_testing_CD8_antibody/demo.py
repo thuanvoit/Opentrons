@@ -219,7 +219,6 @@ class Opentron_Chacha:
         # Remove OLD Tip
         self.pipette.drop_tip()
         ######## REMOVE TBST #########################
-        ###
 
 #meta
 metadata = {
@@ -383,7 +382,7 @@ def run(protocol: protocol_api.ProtocolContext):
     ######## DAPI ####################################################
     ## PAUSE PROGRAM BEFORE DAPI ##
 
-    protocol.pause(f"PUT DAPI INTO {antibody_solution['dapi']['labware']} - {antibody_solution['dapi']['postion']}")
+    protocol.pause(f"PUT DAPI INTO {antibody_solution['dapi']['labware']} - {antibody_solution['dapi']['position']}")
 
     pipette.pick_up_tip()
     chacha.blocking('dapi')
