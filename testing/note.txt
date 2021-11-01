@@ -1,0 +1,7 @@
+
+maximum for 15ml = 9ml
+maximum for 50ml = 45ml
+
+#time to drain water out
+3 times = ~30 seconds
+1 time = ~10 seconds
