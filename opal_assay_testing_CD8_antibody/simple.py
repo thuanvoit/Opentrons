@@ -1,5 +1,4 @@
 from opentrons import protocol_api
-from opentrons.commands.protocol_commands import delay
 
 
 #meta
